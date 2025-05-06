@@ -1,0 +1,90 @@
+#include <stdio.h>
+#include <string.h>
+
+void main() {
+    int i, j = 0, sno = 1, mdno = 1;
+    char word[100]; // Increased buffer size
+    FILE *fip, *fmnt, *fmdt, *fir;
+
+    fip = fopen("input.dat", "r");   // input file
+    fmnt = fopen("mnt.dat", "w");    // Macro Name Table
+    fmdt = fopen("mdt.dat", "w");    // Macro Definition Table
+    fir = fopen("ir.dat", "w");      // Intermediate Code
+
+    if (!fip || !fmnt || !fmdt || !fir) {
+        printf("Error opening files.\n");
+        return;
+    }
+
+    while (fscanf(fip, "%s", word) != EOF) {
+        while (strcmp(word, "MACRO") != 0 && strcmp(word, "END") != 0) {
+            fprintf(fir, "%s ", word);  // copy to IR
+            fgets(word, 100, fip);      // read rest of line
+            if (!strcmp(word, "END\n")) {
+                j = 1;
+                break;
+            }
+        }
+
+        if (j != 1) {
+            fgets(word, 100, fip);   // Macro name
+            fprintf(fmnt, "%d %s", sno, word);  // Write to MNT
+            fprintf(fmdt, "%d %s", mdno, word); // Write to MDT
+            sno++;
+            mdno++;
+
+            fgets(word, 100, fip); // Get next macro line
+        }
+
+        while (strcmp(word, "MEND\n") != 0 && strcmp(word, "END\n") != 0) {
+            fprintf(fmdt, "%d %s", mdno, word);
+            mdno++;
+            if (!strcmp(word, "END"))
+                break;
+            fgets(word, 100, fip);
+        }
+
+        if (j != 1) {
+            fprintf(fmdt, "%d %s", mdno, word); // add MEND
+            mdno++;
+        }
+    }
+
+    fclose(fir);
+    fclose(fip);
+    fclose(fmdt);
+    fclose(fmnt);
+
+    printf("\nCODE IS WRITTEN IN MNT.DAT, MDT.DAT & IR.DAT FILES\n");
+}
+
+
+
+
+
+
+
+
+
+
+
+
+MACRO ADDITION
+LOAD A
+ADD AREG B
+ADD AREG C
+MEND
+MACRO ADDITION1
+LOAD A
+ADD AREG B
+ADD AREG C
+MEND
+START
+MOVER AREG A
+MOVER BREG B
+ADDITION
+STORE X
+A DS 5
+B DC 10
+C DC 15
+END
