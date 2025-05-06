@@ -1,0 +1,81 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+struct symbol {
+    char name[20];
+    int address;
+} sy[20];
+
+struct literal {
+    char name;
+    int address;
+} lit[20];
+
+void main() {
+    FILE *fir, *fout;
+    char line[20], op[3], type;
+    int operand, address, ns = 0, nl = 0, lc = 0;
+    
+    fir = fopen("ir.dat", "r");
+    fout = fopen("output.txt", "w");
+    
+    // Manually initializing symbol table from Pass 1 output
+    sy[0].address = 105; // S0
+    sy[1].address = 105; // S1
+    ns = 2;
+    
+    // Manually initializing literal table from Pass 1 output
+    lit[0].address = 108; // L0
+    lit[1].address = 109; // L1
+    nl = 2;
+    
+    while (fscanf(fir, "%s", line) != EOF) {
+        sscanf(line, "%2s%d%c%d", op, &operand, &type, &address);
+        
+        if (strcmp(op, "AD") == 0) {
+            if (operand == 1) {
+                lc = address; // Set LC from START directive
+            }
+        } else if (strcmp(op, "IS") == 0) {
+            fprintf(fout, "%d %d ", lc, operand);
+            if (type == 'S') {
+                fprintf(fout, "%d\n", sy[address].address);
+            } else if (type == 'L') {
+                fprintf(fout, "%d\n", lit[address].address);
+            } else {
+                fprintf(fout, "%d\n", address);
+            }
+            lc++;
+        } else if (strcmp(op, "DL") == 0) {
+            if (operand == 1) {
+                fprintf(fout, "%d %d %d\n", lc, operand, address);
+            }
+            lc++;
+        } else if (strcmp(op, "AD") == 0 && operand == 2) {
+            lit[nl].name = (char)address;
+            lit[nl].address = lc;
+            nl++;
+            lc++;
+        }
+    }
+    
+    fclose(fir);
+    fclose(fout);
+    printf("Pass 2 completed. Output saved in output.txt\n");
+}
+
+
+
+ir.dat
+//ir.dat
+AD1C100
+IS51S0
+IS61S1
+IS21L0
+IS31L1
+IS61S0
+DL15
+DL23
+AD2C1
+AD2C2
