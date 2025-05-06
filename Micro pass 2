@@ -1,0 +1,82 @@
+#include <stdio.h>
+#include <string.h>
+void main() {
+int j = 0, k;
+char mname[100], word[100];
+FILE *fop, *fmnt, *fmdt, *fir;
+fop = fopen("output.dat", "w"); // Output file
+fmnt = fopen("mnt.dat", "r"); // Macro Name Table
+fmdt = fopen("mdt.dat", "r"); // Macro Definition Table
+fir = fopen("ir.dat", "r"); // Intermediate Representation
+
+if (!fop || !fmnt || !fmdt || !fir) {
+printf("Error opening one or more files.\n");
+return;
+}
+while (fgets(word, 100, fir) != NULL) {
+rewind(fmnt);
+j = 0;
+while (fscanf(fmnt, "%d", &k) != EOF) {
+fgets(mname, 100, fmnt); // Read macro name from MNT
+if (strcmp(word, mname) == 0) {
+j = 1;
+break;
+}
+}
+if (j == 1) {
+rewind(fmdt);
+while (fscanf(fmdt, "%d", &k) != EOF) {
+fgets(mname, 100, fmdt); // Macro name in MDT
+if (strcmp(word, mname) == 0) {
+break;
+}
+}
+// Print macro body from MDT until MEND
+while (fscanf(fmdt, "%d", &k) != EOF) {
+fgets(word, 100, fmdt);
+if (strcmp(word, " MEND\n") == 0)
+break;
+fprintf(fop, "%s", word);
+}
+} else {
+fprintf(fop, "%s", word); // Not a macro, write as-is
+}
+}
+fclose(fop);
+fclose(fmnt);
+fclose(fmdt);
+fclose(fir);
+printf("Output generated in output.dat\n");
+}
+
+
+
+
+MNT.dat
+1 ADDITION
+2 ADDITION1
+
+ir.dat
+START
+MOVER AREG A
+MOVER BREG B
+ADDITION
+STORE X
+A DS 5
+B DC 10
+C DC 15
+END
+
+
+MDT.dat
+1 ADDITION
+
+2 LOAD A
+3 ADD AREG B
+4 ADD AREG C
+5 MEND
+6 ADDITION1
+7 LOAD A
+8 ADD AREG B
+9 ADD AREG C
+10 MEND
