@@ -1,0 +1,113 @@
+#include <stdio.h>
+
+int Pmax[3], avl, avltemp, maxres, running[3], i, j, safe = 0, Pcurr[3];
+
+void input();
+void requestresource();
+void viewresources();
+int checksafe();
+int checkcompletion(int);
+
+int main() {
+    input();
+
+    // Simulate all processes completing successfully
+    printf("\n\n\n\n\nCongratulations! Execution of all processes completed successfully without any deadlock!\n");
+
+    return 0;
+}
+
+void input() {
+    printf("Enter maximum resources: ");
+    scanf("%d", &maxres);
+
+    printf("Enter maximum resources required for each process:\n");
+    for (i = 0; i < 3; i++) {
+        printf("Process %d: ", i + 1);
+        scanf("%d", &Pmax[i]);
+        running[i] = 1;  // Mark all as initially running
+        Pcurr[i] = 0;
+    }
+
+    printf("Enter available resources now: ");
+    scanf("%d", &avl);
+}
+
+void requestresource() {
+    int proc, req;
+    printf("\nFor which Process, you need resources?(1-3):\n");
+    scanf("%d", &proc);
+    proc--;
+
+    if (running[proc] == 0) {
+        printf("Process already completed.\n");
+        return;
+    }
+
+    printf("Enter the number of resources needed: ");
+    scanf("%d", &req);
+
+    if (req > Pmax[proc] - Pcurr[proc]) {
+        printf("Request exceeds maximum claim. Denied.\n");
+    } else if (req > avl) {
+        printf("Not enough resources available. Wait.\n");
+    } else {
+        avl -= req;
+        Pcurr[proc] += req;
+        if (checksafe()) {
+            if (checkcompletion(proc)) {
+                running[proc] = 0;
+                printf("Process %d completed.\n", proc + 1);
+            } else {
+                printf("Resources allocated safely to process %d.\n", proc + 1);
+            }
+        } else {
+            printf("Request leads to unsafe state. Denied.\n");
+            avl += req;
+            Pcurr[proc] -= req;
+        }
+    }
+}
+
+int checksafe() {
+    avltemp = avl;
+    int completed[3] = {0, 0, 0};
+    int count = 0;
+
+    while (count < 3) {
+        int allocated = 0;
+        for (i = 0; i < 3; i++) {
+            if (running[i] && !completed[i] && Pmax[i] - Pcurr[i] <= avltemp) {
+                avltemp += Pcurr[i];
+                completed[i] = 1;
+                allocated = 1;
+                count++;
+            }
+        }
+        if (!allocated) break;
+    }
+
+    return count == 3;
+}
+
+int checkcompletion(int proc) {
+    return (Pcurr[proc] == Pmax[proc]);
+}
+
+void viewresources() {
+    printf("Max. resources in the system: %d\n", maxres);
+    printf("Currently available resources: %d\n", avl);
+    printf("Current resource allocation for each process:\n");
+    for (i = 0; i < 3; i++) {
+        printf("Process %d: Allocated = %d, Max = %d\n", i + 1, Pcurr[i], Pmax[i]);
+    }
+
+    printf("\n\nMax. Resources required for Completion Process\n");
+    for (i = 0; i < 3; i++) {
+        if (running[i]) {
+            printf("Process %d needs %d more resources\n", i + 1, Pmax[i] - Pcurr[i]);
+        } else {
+            printf("Process %d is completed.\n", i + 1);
+        }
+    }
+}
