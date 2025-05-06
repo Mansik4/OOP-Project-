@@ -1,0 +1,107 @@
+#include <stdio.h>
+#include <string.h>
+
+struct Process {
+    int p, b, q, a, turn, wait;  // p = priority, b = burst time, a = arrival time
+} proc[40], temp;
+
+int n, i, j, k;
+
+void interchange(int i) {
+    temp = proc[i];
+    proc[i] = proc[i + 1];
+    proc[i + 1] = temp;
+}
+
+void input() {
+    printf("JOB SCHEDULING ALGORITHMS\n");
+    printf("\nEnter No. of processes: ");
+    scanf("%d", &n);
+    for (i = 0; i < n; i++) {
+        printf("\nEnter the following parameters for P%d", i + 1);
+        printf("\nBurst time  = ");
+        scanf("%d", &proc[i].b);
+        printf("Priority    = ");
+        scanf("%d", &proc[i].p);
+        printf("Arrival time= ");
+        scanf("%d", &proc[i].a);
+        proc[i].q = i + 1;
+        proc[i].turn = 0;
+        proc[i].wait = 0;
+    }
+}
+
+void output() {
+    int sum = proc[0].a;
+    float ta = 0, wa = 0;
+
+    for (i = 0; i < n; i++) {
+        proc[i].wait = sum - proc[i].a;
+        sum += proc[i].b;
+        proc[i].turn = sum - proc[i].a;
+        ta += proc[i].turn;
+        wa += proc[i].wait;
+    }
+
+    ta /= n;
+    wa /= n;
+
+    printf("\nProcess\tBurstTime\tPriority\tArrivalTime\tTurnaround\tWaitingTime");
+    for (j = 1; j <= n; j++) {
+        for (i = 0; i < n; i++) {
+            if (proc[i].q == j) {
+                printf("\nP%d\t%9d\t%8d\t%11d\t%10d\t%12d",
+                       j, proc[i].b, proc[i].p, proc[i].a, proc[i].turn, proc[i].wait);
+            }
+        }
+    }
+    printf("\nAverage Turnaround Time: %.2f", ta);
+    printf("\nAverage Waiting Time: %.2f\n", wa);
+}
+
+void ps() {
+    for (i = 0; i < n - 1; i++) {
+        for (j = 0; j < n - 1; j++) {
+            if (proc[j].p > proc[j + 1].p ||
+               (proc[j].p == proc[j + 1].p && proc[j].b > proc[j + 1].b)) {
+                interchange(j);
+            }
+        }
+    }
+    printf("\n\nRESULT WITH PRIORITY SCHEDULING");
+    output();
+}
+
+void fcfs() {
+    for (i = 0; i < n - 1; i++) {
+        for (j = 0; j < n - 1; j++) {
+            if (proc[j].a > proc[j + 1].a ||
+               (proc[j].a == proc[j + 1].a && proc[j].p < proc[j + 1].p)) {
+                interchange(j);
+            }
+        }
+    }
+    printf("\n\nRESULT WITH FCFS SCHEDULING");
+    output();
+}
+
+void sjf() {
+    for (i = 0; i < n - 1; i++) {
+        for (j = 0; j < n - 1; j++) {
+            if (proc[j].b > proc[j + 1].b ||
+               (proc[j].b == proc[j + 1].b && proc[j].p < proc[j + 1].p)) {
+                interchange(j);
+            }
+        }
+    }
+    printf("\n\nRESULT WITH SJF SCHEDULING");
+    output();
+}
+
+int main() {
+    input();
+    ps();
+    fcfs();
+    sjf();
+    return 0;
+}
